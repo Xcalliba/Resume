@@ -1,0 +1,134 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  cloud-resume-challenge
+
+  Sample SAM Template for cloud-resume-challenge
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 3
+
+  Api:
+    Cors:
+      AllowMethods: "'OPTIONS,POST,GET,PUT,DELETE'"
+      AllowHeaders: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
+      AllowOrigin: "'*'"
+
+Resources:
+# S3 Bucket
+  MyWebsite:
+    Type: AWS::S3::Bucket
+    Properties:
+      AccessControl: PublicRead
+      WebsiteConfiguration:
+        IndexDocument: index.html
+      BucketName: my-fantastic-website-kojo-hagan
+
+# Route53 record  
+  MyRoute53Record:
+    Type: "AWS::Route53::RecordSetGroup"
+    Properties:
+      HostedZoneId: Z04323112N6VH6SNPQOML
+      RecordSets:
+        - Name: www.kojohagan.com 
+          Type: A
+          AliasTarget:
+            HostedZoneId: Z2FDTNDATAQYW2
+            DNSName: !GetAtt MyDistribution.DomainName
+
+#DynamoDB table for Visitor count
+  DynamoDBTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: site-visitor-counter
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: "website"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "website"
+          KeyType: "HASH"
+
+# SSL Certificate for domain (from ACM)
+  MyCertificate:
+    Type: AWS::CertificateManager::Certificate
+    Properties:
+      DomainName: www.kojohagan.com 
+      ValidationMethod: DNS
+
+# Cloudfront Ditribution for caching
+  MyDistribution:
+    Type: "AWS::CloudFront::Distribution"
+    Properties:
+      DistributionConfig:
+        ViewerCertificate:
+          AcmCertificateArn: !Ref MyCertificate
+          SslSupportMethod: sni-only
+        Aliases:
+          - www.kojohagan.com           
+        DefaultCacheBehavior:
+          ViewerProtocolPolicy: allow-all
+          TargetOriginId: my-fantastic-website-kojo-hagan.s3-website-us-east-1.amazonaws.com
+          DefaultTTL: 0
+          MinTTL: 0
+          MaxTTL: 0
+          ForwardedValues:
+            QueryString: false
+        Origins:
+          - DomainName: my-fantastic-website-kojo-hagan.s3-website-us-east-1.amazonaws.com
+            Id: my-fantastic-website-kojo-hagan.s3-website-us-east-1.amazonaws.com
+            CustomOriginConfig:
+              OriginProtocolPolicy: http-only
+        Enabled: "true"
+        DefaultRootObject: index.html
+
+# S3 Bucket Policy    
+  BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      PolicyDocument:
+        Id: MyPolicy
+        Version: 2012-10-17
+        Statement:
+          - Sid: PublicReadForGetBucketObjects
+            Effect: Allow
+            Principal: "*"
+            Action: "s3:GetObject"
+            Resource: !Join
+              - ""
+              - - "arn:aws:s3:::"
+                - !Ref MyWebsite
+                - /*
+      Bucket: !Ref MyWebsite
+
+  MyLambdaFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: Backend/
+      FunctionName: MyVisitorCounter
+      Policies:
+      - AmazonDynamoDBFullAccess
+      Handler: visitor_counter_app.lambda_handler
+      Runtime: python3.7
+      Events:
+        MyVisitorCounterAPI:
+          Type: Api 
+          Properties:
+            Path: /
+            Method: get
+
+#Outputs:
+  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
+  # Find out more about other implicit resources you can reference within SAM
+  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+  #HelloWorldApi:
+   # Description: "API Gateway endpoint URL for Prod stage for Hello World function"
+    #Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/"
+  #HelloWorldFunction:
+    #Description: "Hello World Lambda Function ARN"
+    #Value: !GetAtt HelloWorldFunction.Arn
+  #HelloWorldFunctionIamRole:
+    #Description: "Implicit IAM Role created for Hello World function"
+    #Value: !GetAtt HelloWorldFunctionRole.Arn
