@@ -1,0 +1,8 @@
+{
+    "yaml.schemas": {
+        "file:///Users/xcalliba/Library/Application%20Support/Code/User/globalStorage/amazonwebservices.aws-toolkit-vscode/sam.schema.json": [
+            "AWS-SAM-Project/cloud-resume-challenge/template.yaml"
+        ],
+        "https://json.schemastore.org/github-workflow.json": "file:///Users/xcalliba/Cloud_Projects/AWS-SAM-Project/cloud-resume-challenge/.github/workflows/deploy.yml"
+    }
+}
