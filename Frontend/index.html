@@ -104,17 +104,6 @@
                         </div>
                         <div class="flex-shrink-0"><span class="text-primary">September 2017 - August 2018</span></div>
                     </div>
-                    <div class="d-flex flex-column flex-md-row justify-content-between">
-                        <div class="flex-grow-1">
-                            <h3 class="mb-0">Cloud Administrator</h3>
-                            <div class="subheading mb-3">Premium Vision Cleaning Services, Ghana</div>
-                            <p>• Consolidated all of the company's AWS accounts and organized workflow using AWS Organizations thereby improving productivity by 10%</p>
-                            <p>• Handled operations and maintenance support for AWS cloud resources which includes launching, maintaining and troubleshooting EC2 instances, S3 buckets, VPC, ELB and RDS</p>
-                            <p>• Configured alarms for monitoring the server's performance, health, CPU utilization, memory and disk usage using AWS CloudWatch and CloudWatch Agent</p>
-                            <p>• Stored R&D workloads on EFS file system and allowed concurrent connections of multiple EC2 instances which provided high availability, scalability and lower latency</p>
-                        </div>
-                        <div class="flex-shrink-0"><span class="text-primary">September 2016 - August 2017</span></div>
-                    </div>
                 </div>
             </section>
             <hr class="m-0" />
@@ -149,8 +138,9 @@
                     <h2 class="mb-5">Skills</h2>
                     <div class="subheading mb-3">Programming Languages & Tools</div>
                     <ul class="list-inline dev-icons">
-                        <span class="icon-[logos--kubernetes]" data-width="50" data-height="50"></span>
                         <li class="list-inline-item"><i class="fab fa-aws"></i></li>
+                        <span class="iconify-inline" data-icon="logos:kubernetes" data-width="50" data-height="50"></span>
+                        <span class="iconify-inline" data-icon="logos:docker" data-width="50" data-height="50"></span>
                         <span class="iconify-inline" data-icon="codicon:terminal-bash" data-width="50" data-height="50"></span>
                         <li class="list-inline-item"><i class="fab fa-python"></i></li>
                         <li class="list-inline-item"><i class="fab fa-apple"></i></li>
@@ -247,10 +237,9 @@
                             width="300" height="300">
                          </a>
                     </ul>
-                </div>
-                
-                             
+                </div>         
             </section>
+            
         </div>
         <!-- Bootstrap core JS-->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -259,16 +248,22 @@
         <!-- Visitor count on page-->
         <div>
             <p>Visitors : <span id="visits"></span></p>
-          </div>
-        
-          <script>
-          var APIURL = "https://ol02oh9k40.execute-api.us-east-1.amazonaws.com/Prod/"
-          fetch(APIURL)
-          .then(response => response.text())
-          .then((response) => {
-              document.getElementById("visits").innerHTML = response.replace(/[^0-9\.]+/g,"");
-              
-            })
-          </script> 
+        </div>
+        <script>
+        var APIURL = "https://ol02oh9k40.execute-api.us-east-1.amazonaws.com/Prod/";
+        fetch(APIURL)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.text();
+        })
+        .then(response => {
+            document.getElementById("visits").innerHTML = response.replace(/[^0-9\.]+/g,"");
+        })
+        .catch(error => {
+            console.error('There was a problem with the fetch operation:', error);
+        })            
+        </script> 
     </body>
 </html>
